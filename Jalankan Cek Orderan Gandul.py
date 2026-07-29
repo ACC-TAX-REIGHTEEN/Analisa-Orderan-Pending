@@ -6,16 +6,13 @@ import sys
 
 dapur_dir = "Dapur"
 required_dapur_files = [
-                        "1_Unduh IRC ZN File.py",
+                        "1_Unduh File.py",
                         "2_Hapus dan Filter Data.py",
-                        "3_Ekstrak Komen IRC.py",
-                        "3_Ekstrak Komen ZN.py",
-                        "4_LookupDatas IRC.py",
-                        "4_LookupDatas ZN.py",
-                        "5_Cek Pelunasan IRC.py",
-                        "5_Cek Pelunasan ZN.py",
-                        "6_FinalisasiData IRC.py",
-                        "6_FinalisasiData ZN.py",
+                        "3_Ekstrak Komen.py",
+                        "4_LookupDatas.py",
+                        "5_Cek Pelunasan.py",
+                        "6_FinalisasiData.py",
+                        "config.conf",
                         "__init__.py"
                         ]
 
@@ -41,16 +38,12 @@ for ext in ['*.xls', '*.xlsx']:
         os.remove(file)
 
 scripts_to_run = [
-                 "1_Unduh IRC ZN File.py",
+                 "1_Unduh File.py",
                  "2_Hapus dan Filter Data.py",
-                 "3_Ekstrak Komen IRC.py",
-                 "3_Ekstrak Komen ZN.py",
-                 "4_LookupDatas IRC.py",
-                 "4_LookupDatas ZN.py",
-                 "5_Cek Pelunasan IRC.py",
-                 "5_Cek Pelunasan ZN.py",
-                 "6_FinalisasiData IRC.py",
-                 "6_FinalisasiData ZN.py"
+                 "3_Ekstrak Komen.py",
+                 "4_LookupDatas.py",
+                 "5_Cek Pelunasan.py",
+                 "6_FinalisasiData.py",
                  ]
 current_dir = os.getcwd()
 os.chdir(dapur_dir)
