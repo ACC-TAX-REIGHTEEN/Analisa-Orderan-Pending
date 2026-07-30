@@ -12,6 +12,7 @@ required_dapur_files = [
                         "4_LookupDatas.py",
                         "5_Cek Pelunasan.py",
                         "6_FinalisasiData.py",
+                        "7_AddPayToSS.py",
                         "config.conf",
                         "__init__.py"
                         ]
@@ -44,6 +45,7 @@ scripts_to_run = [
                  "4_LookupDatas.py",
                  "5_Cek Pelunasan.py",
                  "6_FinalisasiData.py",
+                 "7_AddPayToSS.py",
                  ]
 current_dir = os.getcwd()
 os.chdir(dapur_dir)
