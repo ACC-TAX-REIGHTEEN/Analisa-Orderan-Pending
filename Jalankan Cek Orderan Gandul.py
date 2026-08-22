@@ -13,6 +13,7 @@ required_dapur_files = [
                         "5_Cek Pelunasan.py",
                         "6_FinalisasiData.py",
                         "7_AddPayToSS.py",
+                        "credentials.json",
                         "config.conf",
                         "__init__.py"
                         ]
