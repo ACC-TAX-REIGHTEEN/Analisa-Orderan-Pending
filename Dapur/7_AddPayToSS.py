@@ -284,7 +284,7 @@ def main():
     else:
         print("--> Lewati 'url-zn' di config.conf kosong. Writeback ZN dilewati.")
 
-    print("\n--> Seluruh proses writeback selesai.")
+    print("--> Seluruh proses writeback selesai.")
 
 if __name__ == "__main__":
     main()
