@@ -212,7 +212,7 @@ def main():
         keyword_file="ZN"
     )
 
-    print("\n--> Semua proses pengolahan selesai.")
+    print("--> Semua proses pengolahan selesai.")
 
 if __name__ == "__main__":
     main()

@@ -112,7 +112,7 @@ def main():
         label_proses="ZN"
     )
 
-    print("\n--> Seluruh proses pemformatan file selesai.")
+    print("--> Seluruh proses pemformatan file selesai.")
 
 if __name__ == "__main__":
     main()

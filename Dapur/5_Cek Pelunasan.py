@@ -115,7 +115,7 @@ def main():
         label_proses="ZN"
     )
 
-    print("\n--> Seluruh proses pengecekan pelunasan selesai.")
+    print("--> Seluruh proses pengecekan pelunasan selesai.")
 
 if __name__ == "__main__":
     main()

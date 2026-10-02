@@ -2,6 +2,7 @@ import configparser
 import os
 import requests
 from datetime import datetime
+import openpyxl
 
 def build_export_url(url, sheet_name=None):
     if not url or str(url).strip() == "":
@@ -21,6 +22,33 @@ def build_export_url(url, sheet_name=None):
         return export_url
     return None
 
+def sanitize_excel_headers(filename):
+    try:
+        wb = openpyxl.load_workbook(filename)
+        for sheet in wb.worksheets:
+            seen_headers = {}
+            for col_idx in range(1, sheet.max_column + 1):
+                cell_value = sheet.cell(row=1, column=col_idx).value
+                if cell_value is not None:
+                    val_str = str(cell_value).strip()
+                    val_upper = val_str.upper()
+                    
+                    if val_upper in seen_headers:
+                        seen_headers[val_upper] += 1
+                        sheet.cell(row=1, column=col_idx).value = f"{val_str} {seen_headers[val_upper]}"
+                    else:
+                        seen_headers[val_upper] = 1
+
+            table_names = list(sheet.tables.keys())
+            for tbl_name in table_names:
+                del sheet.tables[tbl_name]
+
+        wb.save(filename)
+        wb.close()
+        print(f"--> Sanitasi header & tabel pada {filename} berhasil dilakukan.")
+    except Exception as e:
+        print(f"--> Peringatan: Tidak dapat melakukan sanitasi pada {filename}: {e}")
+
 def download_file(url, filename):
     try:
         print(f"--> Sedang mengunduh file: {filename}...")
@@ -31,6 +59,9 @@ def download_file(url, filename):
             file.write(response.content)
             
         print(f"--> File berhasil disimpan: {filename}")
+        
+        sanitize_excel_headers(filename)
+        
     except Exception as e:
         print(f"--> Terjadi kesalahan saat mengunduh {filename}: {e}")
 
