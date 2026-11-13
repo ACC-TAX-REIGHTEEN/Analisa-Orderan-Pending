@@ -1,6 +1,7 @@
 import os
 import re
 import configparser
+import warnings
 import pandas as pd
 import gspread
 from gspread.utils import rowcol_to_a1
@@ -15,6 +16,14 @@ BULAN_INDO_REV = {
 
 PATTERN_RINCIAN = re.compile(r'(\d{1,2}\s+[A-Za-z]+\s+\d{4})\s+(\d{1,2}\s+[A-Za-z]+\s+\d{4})\s+([\d\.]+)')
 
+def baca_excel_aman(file_path, **kwargs):
+    try:
+        return pd.read_excel(file_path, engine="calamine", **kwargs)
+    except Exception:
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            return pd.read_excel(file_path, engine="openpyxl", **kwargs)
+
 def bersihkan_angka(val):
     if pd.isnull(val):
         return 0.0
@@ -26,22 +35,22 @@ def bersihkan_angka(val):
 def normalisasi_tgl(tgl_str):
     if not tgl_str or str(tgl_str).lower() == "none":
         return ""
-    
+
     s = str(tgl_str).strip().replace('\xa0', ' ')
-    
+
     match_slash = re.search(r'(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})', s)
     if match_slash:
         day = int(match_slash.group(1))
         month_num = int(match_slash.group(2))
         year = int(match_slash.group(3))
-        
+
         if year < 100:
             year += 2000
-            
+
         month_str = BULAN_INDO_REV.get(month_num, "")
         year_short = f"{year % 100:02d}"
         return f"{day:02d} {month_str} {year_short}".lower()
-        
+
     return s.lower()
 
 def bersihkan_prefix_lunas(teks_baris):
@@ -54,7 +63,7 @@ def ambil_semua_catatan(ws):
             'ranges': [f"'{ws.title}'"],
             'fields': 'sheets(data(rowData(values(note))))'
         })
-        
+
         notes_matrix = []
         sheets = res.get('sheets', [])
         if sheets and 'data' in sheets[0]:
@@ -111,7 +120,7 @@ def proses_pembaharuan_teks_catatan(teks_lama, rows_excel_toko):
 
         if baris_cocok:
             status_pelunasan = str(baris_cocok.get('Cek Pelunasan', '')).strip().lower()
-            
+
             if status_pelunasan == 'lunas':
                 teks_final = f"LUNAS/ {teks_murni}"
                 ada_perubahan = True
@@ -137,7 +146,7 @@ def jalankan_writeback(url_sheet, sheet_name, col_target_name, file_excel_hasil,
             return
 
     print(f"--> Membaca data hasil analisis dari: {file_target}")
-    df_excel = pd.read_excel(file_target)
+    df_excel = baca_excel_aman(file_target)
     df_excel = df_excel.dropna(subset=['Tgl Input', 'Nama', 'Toko'], how='all')
 
     df_excel['tgl_input_norm'] = df_excel['Tgl Input'].apply(normalisasi_tgl)
@@ -207,7 +216,7 @@ def jalankan_writeback(url_sheet, sheet_name, col_target_name, file_excel_hasil,
             continue
 
         cell_address = rowcol_to_a1(r_idx + 1, target_col_idx + 1)
-        
+
         note_lama = ""
         if r_idx < len(cell_notes) and target_col_idx < len(cell_notes[r_idx]):
             note_lama = cell_notes[r_idx][target_col_idx]
@@ -227,10 +236,12 @@ def jalankan_writeback(url_sheet, sheet_name, col_target_name, file_excel_hasil,
 def main():
     if not os.path.exists(CONFIG_FILE):
         print(f"--> Error file konfigurasi '{CONFIG_FILE}' tidak ditemukan!")
+        input("\nTekan Enter untuk keluar...")
         return
 
     if not os.path.exists(CREDENTIALS_FILE):
         print(f"--> Error file '{CREDENTIALS_FILE}' tidak ditemukan!")
+        input("\nTekan Enter untuk keluar...")
         return
 
     config = configparser.ConfigParser()
@@ -238,11 +249,13 @@ def main():
 
     if not config.has_section('SS'):
         print("--> Lewati section [SS] tidak ditemukan di config.conf!")
+        input("\nTekan Enter untuk keluar...")
         return
 
     wback_status = config.get('SS', 'wback', fallback='No').strip().lower()
     if wback_status not in ['ya', 'yes', 'true', '1']:
         print("--> Lewati keterangan 'wback' pada config.conf diset 'No'. Writeback dilewati.")
+        input("\nTekan Enter untuk keluar...")
         return
 
     print("--> Melakukan autentikasi Google API via credentials.json...")
@@ -250,6 +263,7 @@ def main():
         gc = gspread.service_account(filename=CREDENTIALS_FILE)
     except Exception as e:
         print(f"--> Error gagal melakukan autentikasi Google API: {e}")
+        input("\nTekan Enter untuk keluar...")
         return
 
     url_irc = config.get('SS', 'url-irc', fallback='').strip()
@@ -285,6 +299,7 @@ def main():
         print("--> Lewati 'url-zn' di config.conf kosong. Writeback ZN dilewati.")
 
     print("--> Seluruh proses writeback selesai.")
+    input("\nTekan Enter untuk keluar...")
 
 if __name__ == "__main__":
     main()

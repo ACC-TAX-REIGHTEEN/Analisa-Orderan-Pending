@@ -1,9 +1,18 @@
 import os
 import re
 import configparser
+import warnings
 import pandas as pd
 
 CONFIG_FILE = "config.conf"
+
+def baca_excel_aman(file_path, **kwargs):
+    try:
+        return pd.read_excel(file_path, engine="calamine", **kwargs)
+    except Exception:
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            return pd.read_excel(file_path, engine="openpyxl", **kwargs)
 
 def bersihkan_angka(val):
     if pd.isnull(val):
@@ -27,7 +36,7 @@ def proses_cek_pelunasan(file_utama, ref_dict, label_proses):
         return
 
     print(f"--> Membaca file utama: {file_utama}")
-    df_utama = pd.read_excel(file_utama)
+    df_utama = baca_excel_aman(file_utama)
 
     kolom_bersih = [col for col in df_utama.columns if not str(col).startswith('Unnamed:')]
     df_utama = df_utama[kolom_bersih]
@@ -35,9 +44,9 @@ def proses_cek_pelunasan(file_utama, ref_dict, label_proses):
     cek_pelunasan_list = []
 
     print(f"--> Menghitung status pelunasan data {label_proses}...")
-    for index, row in df_utama.iterrows():
+    for _, row in df_utama.iterrows():
         no_faktur_utama = bersihkan_faktur(row.get('No. Faktur', ''))
-        
+
         if not no_faktur_utama or no_faktur_utama == "nan":
             cek_pelunasan_list.append("Lunas")
             continue
@@ -45,9 +54,8 @@ def proses_cek_pelunasan(file_utama, ref_dict, label_proses):
         if no_faktur_utama in ref_dict:
             nilai_faktur_ref = ref_dict[no_faktur_utama]["Nilai Faktur Ref"]
             sisa_piutang_ref = ref_dict[no_faktur_utama]["Sisa Piutang Ref"]
-            
             nominal_terbayar = nilai_faktur_ref - sisa_piutang_ref
-            
+
             if sisa_piutang_ref == 0:
                 cek_pelunasan_list.append("Lunas")
             elif nominal_terbayar == 0:
@@ -88,7 +96,13 @@ def main():
 
     print(f"--> Membaca Sheet 'Source' dari: {file_arviewer}")
     try:
-        df_ref = pd.read_excel(file_arviewer, sheet_name="Source", skiprows=3, header=None, usecols="B:H")
+        df_ref = baca_excel_aman(
+            file_arviewer,
+            sheet_name="Source",
+            skiprows=3,
+            header=None,
+            usecols="B:H"
+        )
     except Exception as e:
         print(f"--> Gagal membaca file ARVIEWER: {e}")
         return
@@ -96,7 +110,7 @@ def main():
     ref_dict = {}
     for idx in range(len(df_ref)):
         faktur_id = bersihkan_faktur(df_ref.iloc[idx, 0])
-        
+
         if faktur_id and faktur_id != "nan":
             ref_dict[faktur_id] = {
                 "Nilai Faktur Ref": bersihkan_angka(df_ref.iloc[idx, 5]),
